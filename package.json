@@ -7,6 +7,7 @@
     "server:start": "npm --prefix server start",
     "client": "npm --prefix client run dev",
     "client:build": "npm --prefix client run build",
+    "seed:admin": "npm --prefix server run seed:admin",
     "test:server": "npm --prefix server test"
   },
   "keywords": [
@@ -17,6 +18,6 @@
     "node",
     "authentication"
   ],
-  "author": "Member 1 (Authentication & User Management)",
+  "author": "MERN Stack Group Project (Member 1: Auth, Member 2: Post CRUD, Member 3: Likes & Comments)",
   "license": "ISC"
 }

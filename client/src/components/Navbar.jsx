@@ -17,17 +17,30 @@ const Navbar = () => {
         <Link to="/" className="navbar-logo">
           <span className="logo-icon">📝</span>
           <span className="logo-text">PostHub</span>
-          <span className="badge-member">Member 1: Auth</span>
         </Link>
 
         <nav className="navbar-links">
           <Link to="/" className="nav-link">
-            Home
+            Explore
           </Link>
 
           {isAuthenticated ? (
             <div className="user-nav-group">
-              <Link to="/profile" className="profile-link">
+              <Link to="/dashboard" className="nav-link">
+                Dashboard
+              </Link>
+              <Link to="/my-posts" className="nav-link">
+                My Posts
+              </Link>
+              <Link to="/posts/create" className="btn btn-primary btn-sm nav-create-btn">
+                ✍️ Write
+              </Link>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="nav-link admin-nav-link" title="Admin Control Panel">
+                  🛡️ Admin
+                </Link>
+              )}
+              <Link to="/profile" className="profile-link" title="View profile">
                 {user?.profileImage ? (
                   <img
                     src={user.profileImage}

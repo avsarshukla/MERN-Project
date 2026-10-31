@@ -1,55 +1,111 @@
 # Post Management System — MERN Stack Development
 
-> **Group Project**: 4 Members  
-> **Module**: **Member 1 — Authentication & User Management** (Implemented)
+> **Group Project**: Complete 4-Member Full-Stack MERN Implementation  
+> **Architecture**: MongoDB, Express.js, React (Vite), Node.js  
+> **Status**: **Fully Integrated & Production-Ready (199 Automated Tests Passing, 0 Failures)**
 
 ---
 
-## 📌 1. Member 1 Scope & Ownership
+## 📌 1. Four-Member Architectural Division & Ownership
 
-In accordance with the project specification document (`Post_Management_System_MERN_Group_Plan.pdf`), Member 1 is exclusively responsible for the **Authentication & User Management** module:
+In accordance with the official project plan (`Post_Management_System_MERN_Group_Plan.pdf`):
 
-- **MongoDB/Mongoose User Model** (with schema constraints, timestamps, role support: `user` and `admin`)
-- **User Registration** with input validation and duplicate-email rejection
-- **Password Security**: Bcrypt password hashing pre-save hook and verification
-- **User Login**: Credential verification & JWT generation
-- **JWT Authentication Middleware**: Bearer token extraction, decoding, user hydration, and protected routes
-- **Admin Authorization Middleware**: Prepared for Member 4 integration
-- **Current User Endpoint**: `GET /api/auth/me`
-- **User Profile Endpoints**: `GET /api/users/profile` and `PUT /api/users/profile` (scoped strictly to own profile)
-- **React Frontend**: Registration page, Login page, Profile page with live editing, AuthContext, ProtectedRoute mechanism, and Navigation bar
+### Member 1: Authentication & User Management
+- **MongoDB User Schema**: Constraints, timestamps, and role support (`user` vs `admin`).
+- **Registration**: Input validation, password length constraints, and duplicate-email normalization and rejection.
+- **Password Security**: Pre-save bcrypt hashing hooks and password comparison method.
+- **Login & JWT**: Stateless JWT token generation and verification.
+- **Authentication Middleware**: Bearer token extraction, decoding, user hydration (`protect`), and role enforcement (`admin`).
+- **Profile Management**: `GET /api/auth/me`, `GET /api/users/profile`, and `PUT /api/users/profile`.
+- **Frontend**: Registration, Login, Profile editor, global `AuthContext`, and `ProtectedRoute`.
+
+### Member 2: Post Management & Core CRUD
+- **MongoDB Post Schema**: `title`, `content`, `category`, `image`, `author` (ref: `User`), `likes`, and timestamps.
+- **Post CRUD Endpoints**:
+  - `POST /api/posts`: Create post (Protected; author strictly bound from JWT `req.user._id`).
+  - `GET /api/posts`: Public paginated browsing with keyword search, category filter, and sorting.
+  - `GET /api/posts/my` & `GET /api/posts/my-posts`: Retrieve authenticated user's own posts.
+  - `GET /api/posts/:id`: Retrieve single post with populated author details.
+  - `PUT /api/posts/:id`: Update post with strict ownership check (Owner or Admin).
+  - `DELETE /api/posts/:id`: Delete post with strict ownership check (Owner or Admin).
+- **Post Security & Ownership**: Prevention of author spoofing, rejection of unauthenticated writes (401), non-owner mutation protection (403), and safe ObjectId validation.
+- **Frontend Pages**: Home / Feed (`/`), Post Details (`/posts/:id`), Create Post (`/posts/create`), Edit Post (`/posts/:id/edit`), and My Posts (`/my-posts`).
+
+### Member 3: Likes, Comments & Social Interaction
+- **MongoDB Comment Schema**: `content` (1–1000 characters, trimmed, non-whitespace), `author` (ref: `User`), `post` (ref: `Post`), timestamps, and compound indexes.
+- **Like / Unlike Endpoints**:
+  - `POST /api/posts/:id/like`: Atomically likes post using `$addToSet`, preventing duplicate likes.
+  - `DELETE /api/posts/:id/like`: Atomically unlikes post using `$pull`.
+  - `PUT /api/posts/:id/like`: Toggle like status endpoint.
+- **Comment Endpoints**:
+  - `GET /api/posts/:postId/comments`: Public retrieval of comments, sorted newest first.
+  - `POST /api/posts/:postId/comments`: Protected comment authoring with length validation.
+  - `PUT /api/comments/:id`: Protected comment editing (restricted to author or admin).
+  - `DELETE /api/comments/:id`: Protected comment deletion (restricted to author or admin).
+- **Cascade Deletion**: Deleting a post cascades and removes all related comments, preventing database pollution.
+- **Frontend Components**: `LikeButton` with optimistic UI and rollback, `CommentList` discussion thread, `CommentItem` with inline editing, and `CommentForm`.
+
+### Member 4: Dashboard, Administrator Panel & Integration Lead
+- **User Dashboard (`/dashboard`)**:
+  - `GET /api/dashboard/stats`: Real-time user metrics including posts authored, total likes received across posts, comments written, comments received, global community scale, and recent activity streams (recent posts and comments).
+- **Administrator Panel (`/admin`)**:
+  - `GET /api/admin/stats`: Global platform analytics (total users, total posts, total comments, total likes, role breakdown, and posts by category).
+  - `GET /api/admin/users`: User management with search, role filter (`user` vs `admin`), and pagination.
+  - `DELETE /api/admin/users/:id`: Safe account deletion with complete cascade cleanup (purges user posts, post comments, authored comments, and like references). Self-deletion prevented (400).
+  - `PATCH /api/admin/users/:id/role`: Role toggle (`user` <-> `admin`) with self-demotion prevention (400).
+  - `GET /api/admin/posts` & `DELETE /api/admin/posts/:id`: Global post moderation and deletion.
+  - `GET /api/admin/comments` & `DELETE /api/admin/comments/:id`: Global comment moderation and deletion.
+- **System Integration & Polish**:
+  - Universal navigation (`Navbar`) with dynamic dashboard and admin links.
+  - `ProtectedRoute` supporting both general user authentication and `adminOnly={true}` route guarding.
+  - Safe initial administrator provisioning script (`npm run seed:admin`).
+  - Unified automated test suite with **199 assertions**.
 
 ---
 
-## 🗂️ 2. Project Architecture & Directory Structure
+## 🗂️ 2. Complete Project Architecture & Directory Structure
 
 ```
 MERN/
 ├── Post_Management_System_MERN_Group_Plan.pdf   # Original project specification
-├── package.json                                 # Root convenience runner scripts
+├── package.json                                 # Root runner scripts (server, client, tests, seed)
 ├── .gitignore                                   # Excludes node_modules, .env, build artifacts
-├── README.md                                    # Project documentation
+├── README.md                                    # Comprehensive system documentation
 │
 ├── server/                                      # Node.js + Express Backend
 │   ├── .env.example                             # Environment variable template
-│   ├── package.json                             # Backend dependencies & test scripts
+│   ├── package.json                             # Backend dependencies & test script
 │   ├── server.js                                # Express application entry point
 │   ├── config/
 │   │   └── db.js                                # Mongoose MongoDB connection
 │   ├── models/
-│   │   └── User.js                              # User Mongoose model
+│   │   ├── User.js                              # User Mongoose model (Member 1)
+│   │   ├── Post.js                              # Post Mongoose model (Member 2)
+│   │   └── Comment.js                           # Comment Mongoose model (Member 3)
 │   ├── controllers/
-│   │   ├── authController.js                    # Register, Login, GetMe
-│   │   └── userController.js                    # GetProfile, UpdateProfile
+│   │   ├── authController.js                    # Auth & current user (Member 1)
+│   │   ├── userController.js                    # User profile management (Member 1)
+│   │   ├── postController.js                    # Post CRUD & Likes (Members 2 & 3)
+│   │   ├── commentController.js                 # Comment CRUD (Member 3)
+│   │   ├── dashboardController.js               # Personal dashboard metrics (Member 4)
+│   │   └── adminController.js                   # Platform moderation & admin (Member 4)
 │   ├── middleware/
-│   │   └── authMiddleware.js                    # Protect (JWT) & Admin middlewares
+│   │   └── authMiddleware.js                    # Protect (JWT) & Admin authorization
 │   ├── routes/
 │   │   ├── authRoutes.js                        # /api/auth endpoints
-│   │   └── userRoutes.js                        # /api/users endpoints
+│   │   ├── userRoutes.js                        # /api/users endpoints
+│   │   ├── postRoutes.js                        # /api/posts endpoints
+│   │   ├── commentRoutes.js                     # /api/comments endpoints
+│   │   ├── dashboardRoutes.js                   # /api/dashboard endpoints (Member 4)
+│   │   └── adminRoutes.js                       # /api/admin endpoints (Member 4)
 │   ├── utils/
-│   │   └── generateToken.js                     # JWT token generator
+│   │   ├── generateToken.js                     # JWT token generator
+│   │   └── seedAdmin.js                         # Secure administrator seeding script
 │   └── tests/
-│       └── auth.test.js                         # Automated test suite (34 assertions)
+│       ├── auth.test.js                         # Member 1 Auth test suite (34 assertions)
+│       ├── post.test.js                         # Member 2 Post test suite (49 assertions)
+│       ├── interaction.test.js                  # Member 3 Likes/Comments test suite (59 assertions)
+│       └── admin.test.js                        # Member 4 Dashboard/Admin test suite (57 assertions)
 │
 └── client/                                      # React + Vite Frontend
     ├── .env.example                             # Frontend environment template
@@ -58,13 +114,27 @@ MERN/
     ├── index.html                               # HTML template
     └── src/
         ├── main.jsx                             # React root entry
-        ├── App.jsx                              # Route definitions & layout
+        ├── App.jsx                              # Route definitions & shared layout
         ├── index.css                            # Modern glassmorphism & responsive CSS
         ├── components/
-        │   ├── Navbar.jsx                       # Navigation with live auth status
-        │   └── ProtectedRoute.jsx               # Route guard for logged-in users
+        │   ├── Navbar.jsx                       # Navigation with live auth, dashboard & admin links
+        │   ├── ProtectedRoute.jsx               # Route guard for logged-in and admin-only routes
+        │   ├── PostCard.jsx                     # Post summary card with LikeButton & comment counter
+        │   ├── PostForm.jsx                     # Reusable post creation/editing form
+        │   ├── LikeButton.jsx                   # Interactive like button with optimistic update
+        │   ├── CommentList.jsx                  # Post discussion thread container
+        │   ├── CommentItem.jsx                  # Individual comment card with inline edit/delete
+        │   ├── CommentForm.jsx                  # Comment authoring form with validation
+        │   ├── Pagination.jsx                   # Numbered pagination component
+        │   └── ConfirmationModal.jsx            # Accessible delete confirmation modal
         ├── pages/
-        │   ├── Home.jsx                         # Landing page with module status
+        │   ├── Home.jsx                         # Real post feed with search & filtering
+        │   ├── PostDetails.jsx                  # Full post view with Likes & Comments
+        │   ├── CreatePost.jsx                   # New post form page
+        │   ├── EditPost.jsx                     # Post update page with ownership validation
+        │   ├── MyPosts.jsx                      # Current user's posts dashboard
+        │   ├── Dashboard.jsx                    # User personal dashboard (Member 4)
+        │   ├── AdminDashboard.jsx               # Administrator control panel (Member 4)
         │   ├── Login.jsx                        # User login form
         │   ├── Register.jsx                     # Account registration form
         │   └── Profile.jsx                      # User profile view & edit form
@@ -74,14 +144,19 @@ MERN/
         │   └── useAuth.js                       # Custom hook for consuming AuthContext
         └── services/
             ├── api.js                           # Axios instance with auth interceptor
-            └── authService.js                   # Client-side API calls
+            ├── authService.js                   # Client-side Auth API calls
+            ├── postService.js                   # Client-side Post & Like API calls
+            ├── commentService.js                # Client-side Comment API calls
+            ├── dashboardService.js              # Client-side User Dashboard API calls
+            └── adminService.js                  # Client-side Admin API calls
 ```
 
 ---
 
-## 🔌 3. API Specification (Member 1 Endpoints)
+## 🔌 3. Complete API Specification
 
-| Module | Method | Endpoint | Access | Purpose |
+### Authentication & Users (Member 1)
+| Module | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **Auth** | `POST` | `/api/auth/register` | Public | Register new user account |
 | **Auth** | `POST` | `/api/auth/login` | Public | Authenticate user & receive JWT |
@@ -89,145 +164,121 @@ MERN/
 | **Users** | `GET` | `/api/users/profile` | Protected | Retrieve current user's profile |
 | **Users** | `PUT` | `/api/users/profile` | Protected | Update current user's own profile |
 
-### Request & Response Examples
+### Post Management (Member 2)
+| Module | Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **Posts** | `GET` | `/api/posts` | Public | Browse paginated posts with search & filter |
+| **Posts** | `GET` | `/api/posts/:id` | Public | Retrieve single post by ID with author details |
+| **Posts** | `GET` | `/api/posts/my` | Protected | Retrieve authenticated user's own posts |
+| **Posts** | `GET` | `/api/posts/my-posts`| Protected | Alias for user's own posts |
+| **Posts** | `POST` | `/api/posts` | Protected | Create a new post (author derived from JWT) |
+| **Posts** | `PUT` | `/api/posts/:id` | Owner / Admin | Update title, content, category, or image |
+| **Posts** | `DELETE`| `/api/posts/:id` | Owner / Admin | Delete post (cascades to delete comments) |
 
-#### 1. Register User
-`POST /api/auth/register`
-```json
-// Request Body
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "password": "securepassword123",
-  "role": "user"
-}
+### Likes & Comments Interaction (Member 3)
+| Module | Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **Likes** | `POST` | `/api/posts/:id/like` | Protected | Like a post (duplicate-like prevention) |
+| **Likes** | `DELETE`| `/api/posts/:id/like` | Protected | Unlike a post |
+| **Likes** | `PUT` | `/api/posts/:id/like` | Protected | Toggle like/unlike status |
+| **Comments**| `GET` | `/api/posts/:postId/comments` | Public | Fetch all comments for a post |
+| **Comments**| `POST`| `/api/posts/:postId/comments` | Protected | Add a new comment to a post |
+| **Comments**| `PUT` | `/api/comments/:id` | Owner / Admin | Update an existing comment |
+| **Comments**| `DELETE`| `/api/comments/:id` | Owner / Admin | Delete a comment |
 
-// 201 Created Response
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "_id": "6732a...",
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "role": "user",
-      "profileImage": "",
-      "createdAt": "2026-10-07T18:00:00.000Z"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-#### 2. User Login
-`POST /api/auth/login`
-```json
-// Request Body
-{
-  "email": "jane@example.com",
-  "password": "securepassword123"
-}
-
-// 200 OK Response
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "user": {
-      "_id": "6732a...",
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "role": "user",
-      "profileImage": "",
-      "createdAt": "2026-10-07T18:00:00.000Z"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-#### 3. Get Current User / Profile
-`GET /api/auth/me` or `GET /api/users/profile`
-```http
-Authorization: Bearer <JWT_TOKEN>
-```
-```json
-// 200 OK Response
-{
-  "success": true,
-  "message": "Current authenticated user retrieved",
-  "data": {
-    "user": {
-      "_id": "6732a...",
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "role": "user",
-      "profileImage": "",
-      "createdAt": "2026-10-07T18:00:00.000Z"
-    }
-  }
-}
-```
+### Dashboard & Administration (Member 4)
+| Module | Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **Dashboard**| `GET` | `/api/dashboard/stats` | Protected | Retrieve personal statistics and activity |
+| **Admin** | `GET` | `/api/admin/stats` | Admin Only | Platform-wide metrics and category breakdown |
+| **Admin** | `GET` | `/api/admin/users` | Admin Only | List users with pagination, search, & role filter |
+| **Admin** | `DELETE`| `/api/admin/users/:id` | Admin Only | Delete user with cascade cleanup (no self-delete) |
+| **Admin** | `PATCH` | `/api/admin/users/:id/role`| Admin Only | Toggle user role (`user` <-> `admin`) |
+| **Admin** | `GET` | `/api/admin/posts` | Admin Only | List all posts across platform |
+| **Admin** | `DELETE`| `/api/admin/posts/:id` | Admin Only | Moderate and delete any post |
+| **Admin** | `GET` | `/api/admin/comments` | Admin Only | List all comments across platform |
+| **Admin** | `DELETE`| `/api/admin/comments/:id`| Admin Only | Moderate and delete any comment |
 
 ---
 
 ## 🚀 4. How to Run the Project
 
 ### Prerequisites
-- Node.js (v18+)
-- npm (v9+)
-- MongoDB (running locally or MongoDB Atlas URI)
+- **Node.js** (v18.0.0 or higher)
+- **npm** (v9.0.0 or higher)
+- **MongoDB** (running locally on port 27017, or MongoDB Atlas connection string)
 
-### Setup Environment
-1. In `server/`:
-   ```bash
-   cp .env.example .env
+### Environment Configuration
+1. Backend (`server/.env`):
+   ```env
+   PORT=5000
+   NODE_ENV=development
+   MONGO_URI=mongodb://localhost:27017/post_management_system
+   JWT_SECRET=super_secret_jwt_key_change_in_production
+   CLIENT_URL=http://localhost:5173
    ```
-   Configure `PORT`, `MONGO_URI`, and `JWT_SECRET`.
-2. In `client/`:
-   ```bash
-   cp .env.example .env
+2. Frontend (`client/.env`):
+   ```env
+   VITE_API_URL=/api
    ```
 
-### Running Backend
-```bash
-# From repository root
-npm run server
+### Quick Start Commands
 
-# Or directly in server/
-cd server
-npm run dev
-```
+#### Windows 11 (PowerShell / Command Prompt)
+```powershell
+# 1. From root directory, install dependencies if needed
+npm install
+npm --prefix server install
+npm --prefix client install
 
-### Running Frontend
-```bash
-# From repository root
-npm run client
-
-# Or directly in client/
-cd client
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Running Automated Test Suite
-```bash
-# From repository root
+# 2. Run all backend automated test suites (199 assertions)
 npm run test:server
 
-# Or inside server/
-cd server
-npm test
+# 3. (Optional) Provision an initial administrator account
+npm run seed:admin
+
+# 4. Start Backend API Server (runs on http://localhost:5000)
+npm run server
+
+# 5. In a second terminal, start Frontend Development Server (runs on http://localhost:5173)
+npm run client
 ```
-The test suite utilizes `mongodb-memory-server` and `supertest`, executing all 34 assertions verifying registration, login, duplicate-email rejection, password hashing, JWT authentication, protected routes, and profile updates.
+
+#### Ubuntu / WSL
+```bash
+# 1. Install dependencies
+npm install && npm --prefix server install && npm --prefix client install
+
+# 2. Execute automated test suite
+npm run test:server
+
+# 3. (Optional) Provision initial administrator account
+npm run seed:admin
+
+# 4. Launch backend and frontend
+npm run server
+# In another terminal:
+npm run client
+```
 
 ---
 
-## 🔒 5. Security & Viva Notes
+## 🔒 5. Administrator Setup & Security Rules
 
-1. **Password Hashing**: Plaintext passwords never enter the database. A Mongoose pre-save hook invokes `bcrypt.genSalt(10)` and `bcrypt.hash()`.
-2. **Password Leak Prevention**: `User.toSafeObject()` strips `password` and `__v` before sending responses, and query projections use `.select('-password')`.
-3. **Stateless Authorization**: Protected endpoints verify JWT signature via `jwt.verify(token, process.env.JWT_SECRET)`.
-4. **Ownership Protection**: The user profile controller updates only `req.user._id`, ensuring users cannot mutate other users' accounts.
-5. **Team Integration**: Designed with zero coupling to unimplemented modules (Member 2 Posts, Member 3 Comments, Member 4 Dashboard), providing ready-to-use `AuthContext` and `protect` middleware for teammate branches.
+1. **No Public Admin Registration**: Regular registration on `/register` always creates standard `user` accounts. The frontend never accepts or submits an unverified role.
+2. **Safe Admin Provisioning**: Use the built-in seeding tool:
+   ```bash
+   npm run seed:admin
+   # Or customize parameters:
+   node server/utils/seedAdmin.js admin@posthub.com "Platform Admin" "StrongPassword123"
+   ```
+3. **Self-Preservation Safeguards**:
+   - Administrators cannot delete their own account (`DELETE /api/admin/users/:id` returns 400).
+   - Administrators cannot revoke their own administrator role (`PATCH /api/admin/users/:id/role` returns 400).
+4. **Complete Cascade Cleanups**: When an admin deletes a user, MongoDB cleans up:
+   - All posts authored by that user.
+   - All comments on those posts.
+   - All comments authored by that user across other posts.
+   - All like references from that user across all posts.
+   - Zero orphaned references remain in the database.
+5. **Backend Authorization Verification**: All admin endpoints enforce `protect` (verifying token validity and user identity) followed by `admin` (`req.user.role === 'admin'`). Client requests without admin role receive HTTP `403 Forbidden`.

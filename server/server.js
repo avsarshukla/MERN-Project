@@ -8,6 +8,10 @@ dotenv.config();
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const postRoutes = require('./routes/postRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -26,13 +30,21 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
-    message: 'Post Management System API is running (Member 1: Auth & User Module)'
+    message: 'Post Management System API is running (Members 1, 2, 3, 4: Complete Integrated System)'
   });
 });
 
-// Member 1 API Routes
+// Member 1 API Routes: Auth & Users
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+
+// Member 2 & 3 API Routes: Posts & Comments
+app.use('/api/posts', postRoutes);
+app.use('/api/comments', commentRoutes);
+
+// Member 4 API Routes: Dashboard & Admin
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res, next) => {

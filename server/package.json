@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node tests/auth.test.js"
+    "seed:admin": "node utils/seedAdmin.js",
+    "test": "node tests/auth.test.js && node tests/post.test.js && node tests/interaction.test.js && node tests/admin.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
